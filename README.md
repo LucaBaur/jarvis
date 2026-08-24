@@ -20,8 +20,9 @@ ORCHESTRATOR (Homeserver, Port 8400)   FastAPI + SQLite, läuft 24/7
    Windows, Ollama          48 GB VRAM
 ```
 
-Warum es so gebaut ist, steht in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-Was als Nächstes kommt, in [docs/ROADMAP.md](docs/ROADMAP.md).
+Warum es so gebaut ist, steht in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md),
+die Phasen in [docs/ROADMAP.md](docs/ROADMAP.md), und was konkret ansteht in
+[docs/TODO.md](docs/TODO.md).
 
 **Stand:** Phase 2. Text- und Sprachaufträge laufen durch. Home Assistant und
 Nacht-Jobs sind vorbereitet, aber noch nicht gebaut.

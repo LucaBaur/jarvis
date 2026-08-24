@@ -90,7 +90,8 @@ niemals `.env`, `worker.yaml` oder die Datenbank.
 | `worker/` | Worker: Poll-Schleife und Runner (aktuell nur Ollama) |
 | `docs/` | Architektur, Roadmap, Setup |
 | `deploy/` | systemd-Unit und Anleitung für die Windows-Aufgabenplanung |
-| `tests/` | 147 Tests |
+| `tools/` | Hilfsskripte, etwa zum Erzeugen der App-Symbole |
+| `tests/` | 162 Tests |
 
 Die wichtigsten Dateien, wenn man sich einarbeitet: `jarvis/queue.py` hält den
 Zustandsautomaten der Jobs, `jarvis/scheduler.py` entscheidet, welcher Job zu
@@ -114,6 +115,41 @@ der Lease ab und der Job geht zurück in die Queue, statt für immer auf
 Jeder Job hat eine Priorität, ein erlaubtes Zeitfenster (`any`, `day`,
 `night`), geforderte Tags, einen Mindest-VRAM-Bedarf und optional ein Modell.
 Ein Worker bekommt nur Jobs, die er auch erfüllen kann.
+
+## Als App installieren
+
+Danach liegt Jarvis mit eigenem Symbol auf dem Startbildschirm und öffnet sich
+in einem eigenen Fenster ohne Adresszeile.
+
+**Bedingung: HTTPS oder localhost.** Über `http://192.168.8.125:8400` bietet
+kein Browser das Installieren an, und das Mikrofon bleibt ebenfalls gesperrt.
+
+### Handy
+
+`https://homeserver.tail112520.ts.net:10000` öffnen, anmelden.
+
+Auf Android fragt Chrome von selbst, sonst über das Dreipunktmenü unter
+„App installieren". Auf dem iPhone geht es nur in Safari, über den
+Teilen-Knopf und „Zum Home-Bildschirm".
+
+### Dieser PC
+
+Der PC ist nicht im Tailnet, deshalb ist die HTTPS-Adresse hier nicht
+erreichbar. Zwei Wege:
+
+**Tailscale installieren** (der dauerhafte Weg). Nach der Anmeldung mit
+demselben Konto ist `https://homeserver.tail112520.ts.net:10000` auch von hier
+aus erreichbar, samt Mikrofon und Installation.
+
+**Oder einen SSH-Tunnel**, wenn es nur schnell gehen soll:
+
+```powershell
+ssh -N -L 8400:127.0.0.1:8400 luca@192.168.8.125
+```
+
+Solange das Fenster offen bleibt, ist `http://localhost:8400` erreichbar — und
+localhost gilt dem Browser als sicher. In Chrome dann über das Symbol in der
+Adresszeile oder das Dreipunktmenü installieren.
 
 ## Es gibt zwei Token
 
@@ -197,7 +233,7 @@ Felder beim Absetzen, alle optional außer `prompt`: `model`, `system`,
 ## Entwickeln
 
 ```bash
-.venv/Scripts/python -m pytest        # 147 Tests
+.venv/Scripts/python -m pytest        # 162 Tests
 .venv/Scripts/python -m ruff check .
 ```
 
@@ -235,6 +271,9 @@ muss `OLLAMA_HOST` dort auf `0.0.0.0` stehen, sonst hört es nur auf localhost.
 (`JARVIS_LEASE_SECONDS`, Standard 300) holt der Aufräumer den Job zurück.
 Sofort erzwingen:
 `curl -X POST .../api/maintenance/reap -d '{"force":true}' -H "X-Jarvis-Token: $TOKEN" -H "Content-Type: application/json"`
+
+**Es gibt keinen Installieren-Knopf.** Die Seite ist über HTTP geöffnet.
+Installieren geht nur über HTTPS oder localhost, siehe „Als App installieren".
 
 **Der Aufnahmeknopf tut nichts.** Die Seite ist über HTTP geöffnet. Browser
 geben das Mikrofon nur auf HTTPS oder localhost frei — die HTTPS-Adresse über

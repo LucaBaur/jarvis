@@ -25,7 +25,7 @@ ssh "$ZIEL_HOST" "mkdir -p ~/$ZIEL_PFAD"
 tar czf - \
   --exclude='__pycache__' \
   --exclude='*.pyc' \
-  jarvis worker docs deploy pyproject.toml ruff.toml .env.example README.md CHANGELOG.md \
+  jarvis worker docs deploy tools pyproject.toml ruff.toml .env.example README.md CHANGELOG.md \
   | ssh "$ZIEL_HOST" "tar xzf - -C ~/$ZIEL_PFAD"
 
 echo "== 4/4 Abhaengigkeiten und Dienst =="

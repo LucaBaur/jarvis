@@ -2,6 +2,25 @@
 
 Was sich geändert hat, in verständlicher Sprache. Neueste Version oben.
 
+## 0.2.1 — 24.08.2026
+
+Jarvis lässt sich als App installieren, auf dem Handy und am Rechner. Danach
+liegt es mit eigenem Symbol auf dem Startbildschirm und öffnet sich in einem
+eigenen Fenster ohne Adresszeile.
+
+Dafür fehlten die Symbole in den Größen, die Chrome verlangt (192 und 512
+Pixel als PNG), ein maskierbares für Android und die eigenen Angaben, die iOS
+braucht — Safari wertet das Manifest nicht aus. Erzeugt werden die Symbole von
+`tools/icons.py` ohne zusätzliche Abhängigkeit; die fertigen Dateien liegen im
+Repo.
+
+**Installieren geht nur über HTTPS oder localhost.** Am Handy also die
+Tailscale-Adresse verwenden. Wie es am PC geht, steht im README.
+
+15 Tests prüfen das Manifest, die Bildmaße und die Angaben in der Seite. Das
+sind Dinge, die still scheitern: Fehlt ein Symbol, taucht der Menüpunkt
+„Installieren" einfach nicht auf, ohne jede Meldung.
+
 ## 0.2.0 — 24.08.2026
 
 Sprachnachrichten. Auf dem Dashboard gibt es einen Knopf „Sprechen": aufnehmen,

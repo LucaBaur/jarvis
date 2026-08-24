@@ -1,0 +1,29 @@
+# Geheimnisse - niemals einchecken
+.env
+worker/worker.yaml
+*.token
+
+# Daten und Laufzeit
+data/
+*.db
+*.db-wal
+*.db-shm
+logs/
+*.log
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Editor / OS
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini

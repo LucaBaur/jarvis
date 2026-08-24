@@ -104,5 +104,73 @@
     }
   });
 
-  document.addEventListener("DOMContentLoaded", starten);
+  // --- Sprachaufnahme ---------------------------------------------------
+
+  function meldung(text, istFehler) {
+    var feld = document.getElementById(istFehler ? "job-fehler" : "job-hinweis");
+    feld.textContent = text;
+    feld.hidden = !text;
+    if (istFehler) document.getElementById("job-hinweis").hidden = true;
+    else document.getElementById("job-fehler").hidden = true;
+  }
+
+  function hochladen(blob) {
+    var formular = document.getElementById("neuer-job");
+    var daten = new FormData();
+    daten.append("audio", blob, "aufnahme.wav");
+    daten.append("priority", formular.priority.value || "50");
+    daten.append("window", formular.window.value || "any");
+    if (formular.model.value.trim()) daten.append("model", formular.model.value.trim());
+
+    meldung("Wird erkannt. Das dauert ungefähr so lange wie die Aufnahme.", false);
+
+    return fetch("/api/jobs/audio", { method: "POST", body: daten })
+      .then(function (antwort) {
+        return antwort.json().then(function (koerper) {
+          if (!antwort.ok) throw new Error(koerper.detail || "Upload fehlgeschlagen.");
+          return koerper;
+        });
+      })
+      .then(function (job) { window.location.href = "/jobs/" + job.id; })
+      .catch(function (fehler) { meldung(fehler.message, true); });
+  }
+
+  function aufnahmeEinrichten() {
+    var knopf = document.getElementById("aufnahme");
+    if (!knopf || !window.JarvisAufnahme) return;
+
+    var beschriftung = document.getElementById("aufnahme-text");
+    var aufnehmer = new window.JarvisAufnahme.Aufnehmer(function (sekunden) {
+      beschriftung.textContent = "Stopp (" + Math.floor(sekunden) + " s)";
+    });
+
+    knopf.addEventListener("click", function () {
+      if (aufnehmer.laeuft()) {
+        knopf.classList.remove("aktiv");
+        beschriftung.textContent = "Sprechen";
+        var blob = aufnehmer.stop();
+        if (!blob) { meldung("Es wurde nichts aufgenommen.", true); return; }
+        knopf.disabled = true;
+        hochladen(blob).finally(function () { knopf.disabled = false; });
+        return;
+      }
+
+      meldung("", false);
+      aufnehmer.start()
+        .then(function () { knopf.classList.add("aktiv"); })
+        .catch(function (fehler) {
+          meldung(
+            fehler && fehler.name === "NotAllowedError"
+              ? "Kein Zugriff aufs Mikrofon. Im Browser erlauben und erneut versuchen."
+              : (fehler.message || "Aufnahme nicht möglich."),
+            true
+          );
+        });
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    starten();
+    aufnahmeEinrichten();
+  });
 })();

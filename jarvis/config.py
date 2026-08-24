@@ -47,6 +47,16 @@ class Settings(BaseSettings):
     heartbeat_timeout: int = Field(default=90, ge=10)
     log_level: str = "info"
 
+    # --- Spracherkennung (Phase 2) ---
+    # Der Container wyoming-whisper laeuft auf dem Homeserver bereits fuer die
+    # Assist-Pipeline von Home Assistant und hoert nur auf localhost.
+    stt_enabled: bool = True
+    stt_host: str = "127.0.0.1"
+    stt_port: int = 10300
+    stt_language: str = "de"
+    #: Whisper braucht auf dem Homeserver ungefaehr so lange wie die Aufnahme.
+    stt_timeout: int = Field(default=300, ge=10)
+
     @field_validator("db")
     @classmethod
     def _absolute_db_path(cls, value: Path) -> Path:

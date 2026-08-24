@@ -2,6 +2,48 @@
 
 Was sich geändert hat, in verständlicher Sprache. Neueste Version oben.
 
+## 0.2.0 — 24.08.2026
+
+Sprachnachrichten. Auf dem Dashboard gibt es einen Knopf „Sprechen": aufnehmen,
+stoppen, und der gesprochene Satz landet als Auftrag in der Queue. Ab da
+unterscheidet er sich durch nichts mehr von einem getippten.
+
+Transkribiert wird vom Container `wyoming-whisper`, der auf dem Homeserver
+ohnehin für Home Assistant läuft. Kein zweiter Dienst, keine bezahlte API.
+
+**Aufgenommen wird über die Web-Audio-API, nicht über den MediaRecorder.** Der
+liefert webm/opus, und auf dem Homeserver ist kein ffmpeg installiert, um das
+zu dekodieren — nachinstallieren geht dort nicht ohne Passwort. Der Browser
+baut deshalb selbst eine WAV-Datei, die Whisper direkt versteht. Die
+Abtastrate ist dabei egal, der Container rechnet um.
+
+**Jarvis ist jetzt über HTTPS erreichbar**, unter
+`https://homeserver.tail112520.ts.net:10000`, nur innerhalb des Tailnets. Das
+ist keine Bequemlichkeit: Browser geben das Mikrofon ausschließlich auf HTTPS
+oder localhost frei, über `http://192.168.8.125:8400` bliebe der Aufnahmeknopf
+wirkungslos.
+
+Ist kein Whisper erreichbar oder steht `JARVIS_STT_ENABLED=false`, verschwindet
+der Knopf und alles andere läuft weiter.
+
+### Zur Erkennungsqualität
+
+Gemessen auf dem Homeserver, vier deutsche Sätze über Piper eingesprochen:
+
+| Modell | Rechenzeit für 10 s Audio | vollständig richtig |
+|---|---|---|
+| `base` (läuft) | 11 s | 1 von 4 |
+| `small` | 36 s | 3 von 4 |
+
+`base` verwechselt Kleinigkeiten („Nene mit" statt „Nenne mir") und stolpert
+über Eigennamen („neben Schirm" statt „Nebenschirm"). Für kurze Kommandos
+reicht das; wenn es im Alltag stört, ist `small` der nächste Schritt — er
+kostet aber Faktor 3 an Zeit und rund 1,3 GB RAM. Umgestellt wird über
+`JARVIS_STT_PORT`, ohne Codeänderung.
+
+Piper für gesprochene Antworten ist vorbereitet, aber nicht gebaut. Ob das im
+Alltag etwas bringt, zeigt sich erst mit ein paar Wochen Gebrauch.
+
 ## 0.1.0 — 24.08.2026
 
 Erste lauffähige Fassung. Ein Auftrag geht per Weboberfläche oder REST-API rein

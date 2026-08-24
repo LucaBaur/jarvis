@@ -1,6 +1,6 @@
 [project]
 name = "jarvis"
-version = "0.1.0"
+version = "0.2.0"
 description = "Selbst gehostetes LLM-Harness: Job-Queue mit verteilten Workern"
 requires-python = ">=3.11"
 dependencies = [

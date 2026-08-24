@@ -16,10 +16,23 @@ import sqlite3
 from datetime import datetime, timedelta
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query, Response, status
+from fastapi import (
+    APIRouter,
+    Body,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    Request,
+    Response,
+    UploadFile,
+    status,
+)
 from pydantic import BaseModel, Field
 
 from jarvis import queue, registry
+from jarvis.audio import AudioFehler, lies_wav
 from jarvis.auth import require_token
 from jarvis.config import Settings
 from jarvis.db import to_db, utcnow
@@ -29,10 +42,12 @@ from jarvis.models import (
     JobCreate,
     JobLogLine,
     JobStatus,
+    JobWindow,
     LogLevel,
     Worker,
     WorkerRegistration,
 )
+from jarvis.stt import SttFehler
 
 router = APIRouter(prefix="/api", dependencies=[Depends(require_token)])
 
@@ -94,6 +109,58 @@ def _conflict(job: Job, was: str) -> HTTPException:
 @router.post("/jobs", response_model=Job, status_code=status.HTTP_201_CREATED)
 def create_job(spec: JobCreate, conn: Db) -> Job:
     return queue.create_job(conn, spec)
+
+
+@router.post("/jobs/audio", response_model=Job, status_code=status.HTTP_201_CREATED)
+def create_job_from_audio(
+    request: Request,
+    conn: Db,
+    audio: Annotated[UploadFile, File()],
+    model: Annotated[str | None, Form()] = None,
+    priority: Annotated[int, Form()] = 50,
+    window: Annotated[JobWindow, Form()] = JobWindow.ANY,
+) -> Job:
+    """Sprachnachricht hochladen, transkribieren, als Auftrag einreihen.
+
+    Die Erkennung laeuft hier in der Anfrage, nicht als eigener Job. Das ist
+    eine bewusste Vereinfachung: Whisper braucht auf dem Homeserver ungefaehr
+    so lange wie die Aufnahme dauert, und eine Sprachnachricht ist typisch ein
+    paar Sekunden lang. Die Rechenarbeit macht ohnehin der Wyoming-Container,
+    nicht der Orchestrator.
+    """
+    erkenner = request.app.state.transcriber
+    if erkenner is None:
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            "Die Spracherkennung ist abgeschaltet (JARVIS_STT_ENABLED=false).",
+        )
+
+    try:
+        aufnahme = lies_wav(audio.file.read())
+    except AudioFehler as fehler:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(fehler)) from fehler
+
+    try:
+        text = erkenner.transcribe(aufnahme)
+    except SttFehler as fehler:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, str(fehler)) from fehler
+
+    job = queue.create_job(
+        conn,
+        JobCreate(prompt=text, model=model or None, priority=priority, window=window),
+    )
+    # Herkunft festhalten, damit spaeter unterscheidbar ist, was gesprochen war.
+    conn.execute(
+        "UPDATE jobs SET payload = json_set(payload, '$.quelle', 'sprache') WHERE id = ?",
+        (job.id,),
+    )
+    queue.append_log(
+        conn,
+        job.id,
+        LogLevel.INFO,
+        f"Aus {aufnahme.dauer_s:.1f} s Sprache erkannt: {text}",
+    )
+    return queue.get_job(conn, job.id)
 
 
 @router.get("/jobs", response_model=JobList)

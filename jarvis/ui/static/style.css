@@ -159,3 +159,44 @@ button.link { width: auto; margin: 0; padding: 0; background: none; border: none
 .log li { padding: 0.1rem 0; }
 .log li.warning { color: var(--gelb); }
 .log li.error { color: var(--rot); }
+
+/* Sprachaufnahme */
+
+.knopfreihe { display: flex; gap: 0.6rem; }
+.knopfreihe button { flex: 1; }
+
+button.zweitrangig {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  flex: 0 0 auto;
+  min-width: 8.5rem;
+  background: transparent;
+  border: 1px solid var(--rand);
+  color: var(--text);
+}
+
+button.zweitrangig.aktiv {
+  border-color: var(--rot);
+  color: var(--rot);
+}
+
+.mikro {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: currentColor;
+  flex: 0 0 auto;
+}
+
+button.aktiv .mikro { animation: pulsieren 1.2s ease-in-out infinite; }
+
+@keyframes pulsieren {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.aktiv .mikro { animation: none; }
+}

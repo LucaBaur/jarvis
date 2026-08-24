@@ -99,22 +99,81 @@ Assistant sich darauf verlässt; Jarvis rechnet selbst um.
 `JARVIS_HEARTBEAT_TIMEOUT` (Standard 90) entscheidet, ab wann ein Worker in
 der Oberfläche als offline gilt.
 
+## Spracherkennung
+
+Sprachnachrichten transkribiert der Container `wyoming-whisper`, der auf dem
+Homeserver ohnehin für die Assist-Pipeline von Home Assistant läuft. Er hört
+auf `127.0.0.1:10300`; weil der Orchestrator auf demselben Rechner läuft,
+reicht das.
+
+Prüfen, ob er antwortet:
+
+```bash
+docker ps --filter name=wyoming-whisper
+```
+
+Er läuft mit dem Modell `base` auf Deutsch. Das ist etwa echtzeitschnell, macht
+aber Fehler bei Eigennamen und Kleinigkeiten. Gemessen mit vier deutschen
+Sätzen auf diesem Server:
+
+| Modell | Rechenzeit für 10 s Audio | vollständig richtig | RAM |
+|---|---|---|---|
+| `base` | 11 s | 1 von 4 | 0,5 GB |
+| `small` | 36 s | 3 von 4 | 1,3 GB |
+
+Wer `small` will, ohne Home Assistant zu verlangsamen, startet einen zweiten
+Container nur für Jarvis:
+
+```bash
+docker run -d --name jarvis-whisper --restart unless-stopped \
+  -p 127.0.0.1:10301:10300 \
+  -v ~/jarvis-data/whisper:/data \
+  rhasspy/wyoming-whisper:latest \
+  --model small --language de --compute-type int8 --beam-size 1 \
+  --cpu-threads 2 --data-dir /data --download-dir /data
+```
+
+Danach in `~/jarvis/.env` `JARVIS_STT_PORT=10301` setzen und den Dienst neu
+starten. Der erste Start lädt rund 460 MB Modell herunter und braucht etwa zwei
+Minuten; der Port ist vorher schon offen, weil Docker ihn sofort bindet — das
+heißt noch nicht, dass Whisper bereit ist.
+
+Ohne erreichbaren Whisper einfach `JARVIS_STT_ENABLED=false` setzen. Der
+Aufnahmeknopf verschwindet dann, alles andere läuft weiter.
+
 ## Zugriff von unterwegs
 
-Tailscale läuft auf dem Server bereits (`homeserver`, `100.84.41.20`). Ist das
-Handy im selben Tailnet, genügt:
+Tailscale läuft auf dem Server bereits. Es gibt zwei Wege hinein, und die Wahl
+ist wichtiger als sie aussieht:
 
 ```
-http://homeserver:8400
+http://192.168.8.125:8400                          im Heimnetz
+https://homeserver.tail112520.ts.net:10000         über Tailscale, mit HTTPS
 ```
 
-Kein Port-Forwarding im Router, keine Freigabe ins Internet. Der Dienst hört
-auf `0.0.0.0`, ist also im Heimnetz und im Tailnet erreichbar — beides
-gewollt, beides durch das Token geschützt.
+**Für das Handy den HTTPS-Weg nehmen.** Browser geben das Mikrofon nur auf
+HTTPS oder auf localhost frei. Über die einfache HTTP-Adresse bleibt der
+Aufnahmeknopf wirkungslos, ohne verständliche Fehlermeldung.
+
+Eingerichtet ist das mit:
+
+```bash
+tailscale serve --bg --https=10000 http://127.0.0.1:8400
+```
+
+Wieder abschalten mit `tailscale serve --https=10000 off`. Der Eintrag steht
+neben den beiden bestehenden Funnel-Einträgen (Port 443 für Anytype, 8443 für
+Home Assistant), ist aber bewusst **kein** Funnel: Jarvis ist nur im Tailnet
+erreichbar, nicht aus dem offenen Internet. `tailscale serve status` zeigt das
+als „tailnet only".
+
+Kein Port-Forwarding im Router. Der Dienst selbst hört auf `0.0.0.0` und ist
+damit im Heimnetz direkt erreichbar — durch das Token geschützt.
 
 Wer die Oberfläche als App auf dem Handy will: Seite öffnen, anmelden, im
 Browsermenü „Zum Startbildschirm hinzufügen". Das Anmelde-Cookie hängt am
-Hostnamen, also am besten von Anfang an immer denselben verwenden.
+Hostnamen, also von Anfang an immer dieselbe Adresse verwenden — am besten die
+HTTPS-Adresse, sonst fehlt später das Mikrofon.
 
 ## Aktualisieren
 

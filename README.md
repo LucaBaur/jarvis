@@ -11,7 +11,7 @@ darf ausgeschaltet sein — Aufträge warten dann einfach.
 
 ```
 Handy / Browser
-      |  HTTP, von unterwegs über Tailscale
+      |  HTTPS über Tailscale (nötig fürs Mikrofon)
       v
 ORCHESTRATOR (Homeserver, Port 8400)   FastAPI + SQLite, läuft 24/7
       ^
@@ -23,7 +23,7 @@ ORCHESTRATOR (Homeserver, Port 8400)   FastAPI + SQLite, läuft 24/7
 Warum es so gebaut ist, steht in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 Was als Nächstes kommt, in [docs/ROADMAP.md](docs/ROADMAP.md).
 
-**Stand:** Phase 1. Text-Aufträge laufen durch. Sprache, Home Assistant und
+**Stand:** Phase 2. Text- und Sprachaufträge laufen durch. Home Assistant und
 Nacht-Jobs sind vorbereitet, aber noch nicht gebaut.
 
 ## Schnellstart auf einem Rechner
@@ -90,7 +90,7 @@ niemals `.env`, `worker.yaml` oder die Datenbank.
 | `worker/` | Worker: Poll-Schleife und Runner (aktuell nur Ollama) |
 | `docs/` | Architektur, Roadmap, Setup |
 | `deploy/` | systemd-Unit und Anleitung für die Windows-Aufgabenplanung |
-| `tests/` | 113 Tests |
+| `tests/` | 147 Tests |
 
 Die wichtigsten Dateien, wenn man sich einarbeitet: `jarvis/queue.py` hält den
 Zustandsautomaten der Jobs, `jarvis/scheduler.py` entscheidet, welcher Job zu
@@ -114,6 +114,35 @@ der Lease ab und der Job geht zurück in die Queue, statt für immer auf
 Jeder Job hat eine Priorität, ein erlaubtes Zeitfenster (`any`, `day`,
 `night`), geforderte Tags, einen Mindest-VRAM-Bedarf und optional ein Modell.
 Ein Worker bekommt nur Jobs, die er auch erfüllen kann.
+
+## Sprachnachrichten
+
+Auf dem Dashboard gibt es einen Knopf „Sprechen". Aufnehmen, stoppen, fertig —
+der gesprochene Satz wird transkribiert und als ganz normaler Auftrag
+eingereiht.
+
+**Dafür muss die Seite über HTTPS geöffnet sein.** Browser geben das Mikrofon
+nur auf HTTPS oder auf localhost frei. Am Handy also
+`https://homeserver.tail112520.ts.net:10000` verwenden, nicht die
+HTTP-Adresse — sonst passiert beim Druck auf den Knopf nichts Sinnvolles.
+
+Transkribiert wird lokal von `wyoming-whisper` auf dem Homeserver. Das Modell
+`base` läuft etwa in Echtzeit und reicht für kurze Kommandos, verhaspelt sich
+aber bei Eigennamen. Die Messung gegen das größere `small` steht in
+`docs/SETUP-SERVER.md`.
+
+Aufgenommen wird über die Web-Audio-API statt über den MediaRecorder, weil auf
+dem Server kein ffmpeg installiert ist und das übliche webm/opus dort niemand
+dekodieren könnte. Der Browser baut deshalb direkt eine WAV-Datei.
+
+Per API geht es auch:
+
+```bash
+curl -X POST https://homeserver.tail112520.ts.net:10000/api/jobs/audio \
+  -H "X-Jarvis-Token: $TOKEN" -F "audio=@aufnahme.wav"
+```
+
+Angenommen wird nur WAV mit 16 bit. Die Abtastrate ist egal, Whisper rechnet um.
 
 ## API
 
@@ -144,7 +173,7 @@ Felder beim Absetzen, alle optional außer `prompt`: `model`, `system`,
 ## Entwickeln
 
 ```bash
-.venv/Scripts/python -m pytest        # 113 Tests
+.venv/Scripts/python -m pytest        # 147 Tests
 .venv/Scripts/python -m ruff check .
 ```
 
@@ -182,6 +211,16 @@ muss `OLLAMA_HOST` dort auf `0.0.0.0` stehen, sonst hört es nur auf localhost.
 (`JARVIS_LEASE_SECONDS`, Standard 300) holt der Aufräumer den Job zurück.
 Sofort erzwingen:
 `curl -X POST .../api/maintenance/reap -d '{"force":true}' -H "X-Jarvis-Token: $TOKEN" -H "Content-Type: application/json"`
+
+**Der Aufnahmeknopf tut nichts.** Die Seite ist über HTTP geöffnet. Browser
+geben das Mikrofon nur auf HTTPS oder localhost frei — die HTTPS-Adresse über
+Tailscale verwenden.
+
+**Der Aufnahmeknopf fehlt ganz.** Die Spracherkennung ist aus
+(`JARVIS_STT_ENABLED=false`) oder war beim Start des Dienstes nicht erreichbar.
+
+**„Die Spracherkennung hat nichts verstanden".** Zu leise oder zu kurz. Das
+Modell `base` braucht deutlich gesprochene, zusammenhängende Sätze.
 
 **Die Oberfläche fragt immer wieder nach dem Token.** Das Cookie ist
 `httponly` und an den Host gebunden. Wer über `192.168.8.125:8400` anmeldet und

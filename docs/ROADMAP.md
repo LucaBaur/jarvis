@@ -19,23 +19,34 @@ auf `queued` und läuft an, sobald der Worker startet. Ein Worker, der mitten im
 Job abstürzt, gibt den Job nach Ablauf des Lease wieder frei. Und ein Job lässt
 sich vom Handy über Tailscale absetzen und die Antwort dort lesen.
 
-## Phase 2 — Sprache und Mobil
+## Phase 2 — Sprache und Mobil  ·  erledigt (0.2.0)
 
 Sprachnachricht statt Tippen.
 
 Umfang: Upload-Endpunkt für Audio; Transkription über den vorhandenen
 `wyoming-whisper` auf dem Homeserver, hinter einer austauschbaren
 Schnittstelle; der erkannte Text wird zum Job; die Weboberfläche wird als PWA
-installierbar, mit Aufnahme-Knopf über die MediaRecorder-API. Piper für
-gesprochene Antworten ist optional und kommt nur, wenn sich das im Alltag als
-nützlich erweist.
+installierbar, mit Aufnahme-Knopf. Piper für gesprochene Antworten ist optional
+und kommt nur, wenn sich das im Alltag als nützlich erweist.
 
-Offener Punkt: Die Wyoming-Container hören nur auf `127.0.0.1`. Läuft der
-Orchestrator auf demselben Server, reicht das; sonst muss das Port-Binding
-geändert werden.
+Abgenommen: Eine über Piper eingesprochene deutsche Aufnahme geht durch den
+echten Endpunkt, wird von `wyoming-whisper` transkribiert und landet als
+wartender Auftrag in der Queue. Am laufenden System geprüft.
 
-Abgenommen, wenn: Eine vom Handy aufgenommene deutsche Sprachnachricht landet
-als korrekt transkribierter Job in der Queue und wird beantwortet.
+Zwei Dinge waren anders als gedacht. Der Homeserver hat kein ffmpeg, und ohne
+Passwort lässt sich das nicht ändern — deshalb nimmt der Browser über die
+Web-Audio-API selbst WAV auf, statt den MediaRecorder zu benutzen. Und der
+Mikrofonknopf braucht HTTPS, sonst gibt kein Browser das Mikrofon frei; Jarvis
+liegt dafür jetzt unter `https://homeserver.tail112520.ts.net:10000`, nur im
+Tailnet.
+
+Nicht gebaut: Piper für gesprochene Antworten. Ob das im Alltag etwas bringt,
+zeigt sich erst mit ein paar Wochen Gebrauch. Benachrichtigungen zurück laufen
+über Home Assistant und gehören damit in Phase 3.
+
+Offen bleibt die Erkennungsqualität. Das Modell `base` reicht für kurze
+Kommandos, stolpert aber über Eigennamen. Die Messung gegen `small` steht im
+`CHANGELOG.md` und in `SETUP-SERVER.md`; umgestellt wird ohne Codeänderung.
 
 ## Phase 3 — Home Assistant
 

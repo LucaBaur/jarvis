@@ -25,6 +25,7 @@ from jarvis import __version__, api, db, queue, registry
 from jarvis.auth import COOKIE_MAX_AGE, TOKEN_COOKIE, browser_is_logged_in, token_matches
 from jarvis.config import Settings
 from jarvis.deps import get_db
+from jarvis.stt import Transcriber, WyomingTranscriber
 
 UI_DIR = Path(__file__).parent / "ui"
 #: Wie oft im Hintergrund nach abgelaufenen Leases gesehen wird.
@@ -38,7 +39,15 @@ log = logging.getLogger("jarvis")
 Db = Annotated[sqlite3.Connection, Depends(get_db)]
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None, *, transcriber: Transcriber | None = None
+) -> FastAPI:
+    """Baut die App.
+
+    ``transcriber`` laesst sich fuer Tests hereinreichen. Ohne Angabe wird
+    der Wyoming-Dienst aus der Konfiguration genommen, sofern die
+    Spracherkennung eingeschaltet ist.
+    """
     settings = settings or Settings()
     templates = Jinja2Templates(directory=UI_DIR / "templates")
 
@@ -57,6 +66,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @contextlib.asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.settings = settings
+        app.state.transcriber = transcriber or _baue_transcriber(settings)
         # Einmalig das Schema anlegen. Danach oeffnet jede Anfrage ihre
         # eigene Verbindung (siehe deps.get_db).
         with contextlib.closing(db.connect(settings.db)) as conn:
@@ -68,6 +78,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 "Der Dienst ist damit praktisch ungeschützt."
             )
         log.info("Jarvis %s bereit, Datenbank %s", __version__, settings.db)
+        if app.state.transcriber is None:
+            log.info("Spracherkennung aus, Sprachnachrichten werden abgelehnt")
 
         aufraeumer = asyncio.create_task(_reap_loop(app))
         try:
@@ -88,6 +100,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return {"status": "ok", "version": __version__}
 
     return app
+
+
+def _baue_transcriber(settings: Settings) -> Transcriber | None:
+    if not settings.stt_enabled:
+        return None
+    return WyomingTranscriber(
+        host=settings.stt_host,
+        port=settings.stt_port,
+        language=settings.stt_language,
+        timeout=settings.stt_timeout,
+    )
 
 
 async def _reap_loop(app: FastAPI) -> None:
@@ -154,6 +177,7 @@ def _add_ui_routes(app: FastAPI, templates: Jinja2Templates) -> None:
                     conn, heartbeat_timeout=settings.heartbeat_timeout
                 ),
                 "zaehler": queue.count_by_status(conn),
+                "sprache": request.app.state.transcriber is not None,
                 "version": __version__,
             },
         )

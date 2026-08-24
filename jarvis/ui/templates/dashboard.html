@@ -27,8 +27,16 @@
         </label>
       </div>
     </details>
-    <button type="submit">Absetzen</button>
+    <div class="knopfreihe">
+      <button type="submit">Absetzen</button>
+      {% if sprache %}
+      <button type="button" id="aufnahme" class="zweitrangig" title="Sprachnachricht aufnehmen">
+        <span class="mikro"></span><span id="aufnahme-text">Sprechen</span>
+      </button>
+      {% endif %}
+    </div>
     <p class="fehler" id="job-fehler" hidden></p>
+    <p class="hinweis" id="job-hinweis" hidden></p>
   </form>
 </section>
 

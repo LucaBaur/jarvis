@@ -49,3 +49,9 @@ def make_worker(
 @pytest.fixture
 def worker() -> Worker:
     return make_worker()
+
+
+def pytest_addoption(parser):
+    """Ziel für die Prüfung gegen den echten Whisper (siehe test_stt_echt.py)."""
+    parser.addoption("--stt-host", default="127.0.0.1")
+    parser.addoption("--stt-port", type=int, default=10300)

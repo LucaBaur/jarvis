@@ -1,0 +1,36 @@
+# systemd-User-Unit fuer den Jarvis-Orchestrator.
+# Nach ~/.config/systemd/user/jarvis.service kopieren, dann:
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now jarvis
+# Linger muss an sein, damit der Dienst ohne Anmeldung laeuft:
+#   sudo loginctl enable-linger luca
+
+[Unit]
+Description=Jarvis Orchestrator (Job-Queue und Weboberflaeche)
+Documentation=file:///home/luca/jarvis/README.md
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/jarvis
+ExecStart=%h/jarvis/.venv/bin/python -m jarvis.main
+Restart=always
+RestartSec=5
+
+# Der Dienst rechnet nichts, er verwaltet nur. Deckel gegen Ausreisser,
+# damit Home Assistant auf dem knappen RAM nicht leidet.
+MemoryMax=512M
+CPUWeight=50
+
+# Nur der eigene Ordner ist beschreibbar.
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=%h/jarvis
+NoNewPrivileges=true
+
+StandardOutput=append:%h/logs/jarvis.log
+StandardError=append:%h/logs/jarvis.log
+
+[Install]
+WantedBy=default.target

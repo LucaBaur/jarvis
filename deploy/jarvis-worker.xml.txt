@@ -1,0 +1,29 @@
+Windows-Aufgabenplanung: Worker beim Anmelden starten
+=====================================================
+
+In PowerShell als normaler Benutzer (kein Admin noetig):
+
+  $ordner = "C:\Users\lb307\Desktop\Coding\Jarvis"
+  $aktion  = New-ScheduledTaskAction `
+      -Execute "$ordner\.venv\Scripts\pythonw.exe" `
+      -Argument "-m worker.agent" `
+      -WorkingDirectory $ordner
+  $ausloeser = New-ScheduledTaskTrigger -AtLogOn
+  $optionen  = New-ScheduledTaskSettingsSet `
+      -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
+      -RestartCount 999 -RestartInterval (New-TimeSpan -Minutes 1)
+  Register-ScheduledTask -TaskName "Jarvis Worker" `
+      -Action $aktion -Trigger $ausloeser -Settings $optionen
+
+pythonw.exe statt python.exe, damit kein Konsolenfenster offen bleibt.
+
+Pruefen:   Get-ScheduledTask -TaskName "Jarvis Worker"
+Starten:   Start-ScheduledTask -TaskName "Jarvis Worker"
+Anhalten:  Stop-ScheduledTask  -TaskName "Jarvis Worker"
+Entfernen: Unregister-ScheduledTask -TaskName "Jarvis Worker" -Confirm:$false
+
+Der Worker schreibt sein Log auf stdout. Mit pythonw geht das ins Leere -
+fuer Fehlersuche stattdessen von Hand starten:
+
+  cd C:\Users\lb307\Desktop\Coding\Jarvis
+  .venv\Scripts\python.exe -m worker.agent

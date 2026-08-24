@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block titel %}Jarvis{% endblock %}
+
+{% block inhalt %}
+<section class="karte">
+  <h1>Neuer Auftrag</h1>
+  <form id="neuer-job" autocomplete="off">
+    <textarea name="prompt" rows="4" placeholder="Was soll Jarvis tun?" required></textarea>
+    <details class="optionen">
+      <summary>Mehr einstellen</summary>
+      <div class="raster">
+        <label>Modell
+          <input name="model" placeholder="leer = was der Worker vorgibt">
+        </label>
+        <label>Priorität
+          <input name="priority" type="number" value="50" min="0" max="999">
+        </label>
+        <label>Zeitfenster
+          <select name="window">
+            <option value="any">jederzeit</option>
+            <option value="night">nur nachts</option>
+            <option value="day">nur tagsüber</option>
+          </select>
+        </label>
+        <label>Mindest-VRAM (MB)
+          <input name="min_vram_mb" type="number" value="0" min="0" step="512">
+        </label>
+      </div>
+    </details>
+    <button type="submit">Absetzen</button>
+    <p class="fehler" id="job-fehler" hidden></p>
+  </form>
+</section>
+
+<section class="karte">
+  <h2>Worker</h2>
+  {% if workers %}
+  <ul class="worker">
+    {% for w in workers %}
+    <li>
+      <span class="punkt {{ w.state.value }}" title="{{ w.state.value }}"></span>
+      <strong>{{ w.name }}</strong>
+      <span class="klein">
+        {{ w.vram_mb }} MB VRAM
+        {%- if w.tags %} · {{ w.tags | join(", ") }}{% endif %}
+        {%- if w.current_job %} · arbeitet an <a href="/jobs/{{ w.current_job }}">{{ w.current_job[:8] }}</a>{% endif %}
+      </span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="hinweis">Noch kein Worker angemeldet. Aufträge warten so lange in der Queue.</p>
+  {% endif %}
+</section>
+
+<section class="karte">
+  <h2>Aufträge
+    <span class="klein">
+      {%- for status, anzahl in zaehler.items() %}{{ anzahl }} {{ status }}{% if not loop.last %} · {% endif %}{% endfor -%}
+    </span>
+  </h2>
+  <div id="jobliste" data-quelle="/partials/jobs">
+    {% include "_jobs.html" %}
+  </div>
+</section>
+{% endblock %}

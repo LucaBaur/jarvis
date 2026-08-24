@@ -10,7 +10,12 @@ from zoneinfo import ZoneInfo
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from jarvis.scheduler import WindowConfig
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+#: Werte, die aus .env.example stammen und kein echtes Geheimnis sind.
+INSECURE_TOKENS = frozenset({"dev-token", "bitte-ersetzen", "", "changeme"})
 
 
 def _parse_hhmm(value: str) -> time:
@@ -58,6 +63,19 @@ class Settings(BaseSettings):
     @property
     def night_to(self) -> time:
         return _parse_hhmm(self.night_end)
+
+    @property
+    def window_config(self) -> WindowConfig:
+        return WindowConfig(night_start=self.night_from, night_end=self.night_to, tz=self.zone)
+
+    @property
+    def token_is_default(self) -> bool:
+        """Steckt noch der Platzhalter drin?
+
+        Der Start warnt dann laut, statt still einen Dienst ohne wirksames
+        Token laufen zu lassen.
+        """
+        return self.token in INSECURE_TOKENS
 
 
 @lru_cache

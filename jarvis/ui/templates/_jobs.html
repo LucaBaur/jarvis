@@ -1,0 +1,21 @@
+{% if jobs %}
+<table class="jobs">
+  <tbody>
+    {% for job in jobs %}
+    <tr>
+      <td><span class="status {{ job.status.value }}">{{ job.status.value }}</span></td>
+      <td class="wachsend">
+        <a href="/jobs/{{ job.id }}">{{ job.payload.get("prompt", "(ohne Text)") | truncate(80) }}</a>
+        <div class="klein">
+          {{ job.created_at.strftime("%d.%m. %H:%M") }}
+          {%- if job.assigned_worker %} · {{ job.assigned_worker }}{% endif %}
+          {%- if job.window.value != "any" %} · {{ job.window.value }}{% endif %}
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="hinweis">Noch keine Aufträge.</p>
+{% endif %}

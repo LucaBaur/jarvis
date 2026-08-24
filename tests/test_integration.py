@@ -111,7 +111,8 @@ def test_worker_nimmt_nur_was_er_kann(orchestrator, ollama):
     assert agent.poll_once() is False
 
     assert orchestrator.get(f"/api/jobs/{passend['id']}", headers=AUTH).json()["status"] == "done"
-    assert orchestrator.get(f"/api/jobs/{zu_gross['id']}", headers=AUTH).json()["status"] == "queued"
+    liegen = orchestrator.get(f"/api/jobs/{zu_gross['id']}", headers=AUTH).json()
+    assert liegen["status"] == "queued"
 
 
 def test_ollama_aus_meldet_einen_lesbaren_fehler(orchestrator):

@@ -1,0 +1,34 @@
+# Vorlage. Kopie als worker.yaml anlegen und ausfuellen.
+# worker.yaml steht in .gitignore, weil das Token darin steht.
+
+# Frei waehlbar, muss aber pro Rechner eindeutig sein.
+name: gpu-pc
+
+# Wo der Orchestrator laeuft. Im Heimnetz die LAN-Adresse des Homeservers.
+orchestrator: http://192.168.8.125:8400
+
+# Dasselbe Token wie JARVIS_TOKEN in der .env des Orchestrators.
+token: bitte-ersetzen
+
+# Was dieser Rechner kann. Ein Job mit required_tags bekommt nur ein Worker,
+# der alle davon hat.
+tags: [gpu, coding]
+
+# Wird beim Start durch die tatsaechliche Ollama-Modellliste ersetzt.
+models: [llama3.1:8b]
+
+# Fuer das Routing: Ein Job mit min_vram_mb groesser als dieser Wert wird hier
+# nicht angenommen. GTX 1660 SUPER = 6144, zwei RTX 3090 = 49152.
+vram_mb: 6144
+
+ollama_url: http://127.0.0.1:11434
+default_model: llama3.1:8b
+
+# Sekunden zwischen zwei Anfragen an die Queue.
+poll_interval: 5
+
+# none | always_on | self_timer | wol  (siehe docs/ARCHITECTURE.md, Phase 4)
+wake_strategy: always_on
+
+# Nur zur Anzeige in der Oberflaeche.
+address: 192.168.8.124

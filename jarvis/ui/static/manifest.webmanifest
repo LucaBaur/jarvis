@@ -1,0 +1,13 @@
+{
+  "name": "Jarvis",
+  "short_name": "Jarvis",
+  "description": "Auftraege absetzen und Ergebnisse ansehen",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#12151a",
+  "theme_color": "#12151a",
+  "icons": [
+    { "src": "/static/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

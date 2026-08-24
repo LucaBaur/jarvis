@@ -106,13 +106,20 @@ def load_json(value: str | None, default: Any = None) -> Any:
     return json.loads(value)
 
 
-def connect(path: Path | str) -> sqlite3.Connection:
-    """Öffnet die Datenbank und legt das Schema an, falls es fehlt."""
+def connect(path: Path | str, *, check_same_thread: bool = True) -> sqlite3.Connection:
+    """Öffnet die Datenbank und legt das Schema an, falls es fehlt.
+
+    ``check_same_thread=False`` braucht der Webdienst, weil FastAPI
+    synchrone Endpunkte in einem Threadpool ausführt. Die Aufrufe werden
+    dort über eine Sperre serialisiert (siehe ``main.get_db``).
+    """
     path = Path(path)
     if str(path) != ":memory:":
         path.parent.mkdir(parents=True, exist_ok=True)
 
-    conn = sqlite3.connect(path, isolation_level=None, timeout=30.0)
+    conn = sqlite3.connect(
+        path, isolation_level=None, timeout=30.0, check_same_thread=check_same_thread
+    )
     conn.row_factory = sqlite3.Row
     # WAL: Lesen blockiert Schreiben nicht. Bei einer Datei im Speicher gibt es
     # kein WAL, deshalb der Zweig.

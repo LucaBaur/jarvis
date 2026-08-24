@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block titel %}Anmelden — Jarvis{% endblock %}
+
+{% block inhalt %}
+<section class="karte schmal">
+  <h1>Anmelden</h1>
+  <p class="hinweis">
+    Das Token steht als <code>JARVIS_TOKEN</code> in der <code>.env</code> auf
+    dem Server. Es wird als Cookie gespeichert, damit die Anmeldung nur einmal
+    nötig ist.
+  </p>
+  {% if fehler %}<p class="fehler">{{ fehler }}</p>{% endif %}
+  <form method="post" action="/login">
+    <label for="token">Token</label>
+    <input id="token" name="token" type="password" autocomplete="current-password" autofocus required>
+    <button type="submit">Anmelden</button>
+  </form>
+</section>
+{% endblock %}

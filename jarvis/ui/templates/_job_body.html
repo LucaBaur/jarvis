@@ -1,0 +1,45 @@
+<h1>
+  <span class="status {{ job.status.value }}">{{ job.status.value }}</span>
+  <span class="klein">{{ job.id[:8] }}</span>
+</h1>
+
+<dl class="daten">
+  <dt>Angelegt</dt><dd>{{ job.created_at.strftime("%d.%m.%Y %H:%M") }}</dd>
+  {% if job.assigned_worker %}<dt>Worker</dt><dd>{{ job.assigned_worker }}</dd>{% endif %}
+  {% if job.model %}<dt>Modell</dt><dd>{{ job.model }}</dd>{% endif %}
+  {% if job.window.value != "any" %}<dt>Fenster</dt><dd>{{ job.window.value }}</dd>{% endif %}
+  {% if job.attempts %}<dt>Versuche</dt><dd>{{ job.attempts }} von {{ job.max_attempts }}</dd>{% endif %}
+</dl>
+
+<h2>Auftrag</h2>
+<pre class="text">{{ job.payload.get("prompt", "") }}</pre>
+
+{% if job.result and job.result.get("text") %}
+<h2>Antwort</h2>
+<pre class="text antwort">{{ job.result["text"] }}</pre>
+{% endif %}
+
+{% if job.error %}
+<h2>Fehler</h2>
+<pre class="text fehler">{{ job.error }}</pre>
+{% endif %}
+
+<h2>Log</h2>
+{% if zeilen %}
+<ol class="log">
+  {% for zeile in zeilen %}
+  <li class="{{ zeile.level.value }}">
+    <span class="klein">{{ zeile.ts.strftime("%H:%M:%S") }}</span>
+    {{ zeile.message }}
+  </li>
+  {% endfor %}
+</ol>
+{% else %}
+<p class="hinweis">Noch nichts protokolliert.</p>
+{% endif %}
+
+{% if job.status.value in ("queued", "assigned", "running") %}
+<form method="post" action="/api/jobs/{{ job.id }}/cancel" data-abbrechen>
+  <button class="gefahr" type="submit">Abbrechen</button>
+</form>
+{% endif %}

@@ -1,0 +1,161 @@
+/* Dunkel, ruhig, für ein Handy in der Hand gebaut. */
+
+:root {
+  --grund: #12151a;
+  --karte: #191d24;
+  --rand: #262c36;
+  --text: #dfe4ec;
+  --gedaempft: #8792a3;
+  --akzent: #6aa9ff;
+  --gruen: #4ec98a;
+  --gelb: #e2b93b;
+  --rot: #ef6b6b;
+  --radius: 10px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0 0 3rem;
+  background: var(--grund);
+  color: var(--text);
+  font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+main { max-width: 46rem; margin: 0 auto; padding: 0 1rem; }
+
+.kopf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.marke {
+  color: var(--text);
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+
+.fuss {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2rem;
+  color: var(--gedaempft);
+  font-size: 0.8rem;
+}
+
+.karte {
+  background: var(--karte);
+  border: 1px solid var(--rand);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.karte.schmal { max-width: 24rem; margin: 3rem auto; }
+
+h1 { font-size: 1.25rem; margin: 0 0 0.8rem; }
+h2 { font-size: 1rem; margin: 1.4rem 0 0.5rem; }
+h2:first-of-type { margin-top: 0.6rem; }
+
+.klein { color: var(--gedaempft); font-size: 0.8rem; font-weight: 400; }
+.hinweis { color: var(--gedaempft); font-size: 0.9rem; }
+.fehler { color: var(--rot); }
+
+/* Formulare */
+
+textarea, input, select, button {
+  font: inherit;
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  color: var(--text);
+  background: #10131a;
+  border: 1px solid var(--rand);
+  border-radius: 8px;
+}
+
+textarea { resize: vertical; min-height: 5rem; }
+input:focus, textarea:focus, select:focus { outline: 2px solid var(--akzent); outline-offset: -1px; }
+
+label { display: block; margin: 0.6rem 0 0; color: var(--gedaempft); font-size: 0.85rem; }
+label input, label select { margin-top: 0.25rem; }
+
+button {
+  margin-top: 0.8rem;
+  color: #0d1017;
+  background: var(--akzent);
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:disabled { opacity: 0.5; cursor: progress; }
+button.gefahr { background: transparent; border: 1px solid var(--rot); color: var(--rot); }
+button.link { width: auto; margin: 0; padding: 0; background: none; border: none; color: var(--gedaempft); text-decoration: underline; cursor: pointer; font-size: 0.8rem; }
+
+.optionen { margin-top: 0.7rem; }
+.optionen summary { color: var(--gedaempft); font-size: 0.85rem; cursor: pointer; }
+.raster { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 0 0.7rem; }
+
+/* Listen */
+
+.jobs { width: 100%; border-collapse: collapse; }
+.jobs td { padding: 0.55rem 0.4rem; border-top: 1px solid var(--rand); vertical-align: top; }
+.jobs tr:first-child td { border-top: none; }
+.jobs .wachsend { width: 100%; }
+.jobs a { color: var(--text); text-decoration: none; }
+.jobs a:hover { color: var(--akzent); }
+
+.status {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--rand);
+  color: var(--gedaempft);
+}
+
+.status.running, .status.assigned { background: rgba(226, 185, 59, 0.16); color: var(--gelb); }
+.status.done { background: rgba(78, 201, 138, 0.16); color: var(--gruen); }
+.status.failed { background: rgba(239, 107, 107, 0.16); color: var(--rot); }
+
+.worker { list-style: none; margin: 0; padding: 0; }
+.worker li { padding: 0.35rem 0; }
+.worker a { color: var(--akzent); }
+
+.punkt { display: inline-block; width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--gedaempft); margin-right: 0.45rem; }
+.punkt.online { background: var(--gruen); }
+.punkt.offline { background: var(--rand); }
+
+.daten { display: grid; grid-template-columns: auto 1fr; gap: 0.15rem 0.8rem; margin: 0 0 0.5rem; font-size: 0.88rem; }
+.daten dt { color: var(--gedaempft); }
+.daten dd { margin: 0; }
+
+.text {
+  margin: 0;
+  padding: 0.7rem 0.8rem;
+  background: #10131a;
+  border: 1px solid var(--rand);
+  border-radius: 8px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font: 0.9rem/1.5 ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+
+.text.antwort { border-color: rgba(78, 201, 138, 0.35); }
+.text.fehler { border-color: rgba(239, 107, 107, 0.35); color: var(--rot); }
+
+.log { margin: 0; padding-left: 1.2rem; font-size: 0.85rem; }
+.log li { padding: 0.1rem 0; }
+.log li.warning { color: var(--gelb); }
+.log li.error { color: var(--rot); }

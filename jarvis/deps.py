@@ -11,6 +11,7 @@ from collections.abc import Iterator
 
 from fastapi import Request
 
+from jarvis import db
 from jarvis.config import Settings
 
 
@@ -19,12 +20,19 @@ def get_settings_dep(request: Request) -> Settings:
 
 
 def get_db(request: Request) -> Iterator[sqlite3.Connection]:
-    """Reicht die eine Verbindung durch, jeweils unter Sperre.
+    """Eine frische Verbindung pro Anfrage, danach zu.
 
-    FastAPI führt synchrone Endpunkte in einem Threadpool aus. Statt einer
-    Verbindung pro Anfrage gibt es eine einzige, deren Zugriffe serialisiert
-    werden. Bei ein paar Anfragen pro Minute kostet das nichts und macht die
-    Nebenläufigkeit trivial nachvollziehbar.
+    Bewusst keine geteilte Verbindung mit Sperre: FastAPI führt synchrone
+    Endpunkte im Threadpool aus, und bei einer Abhängigkeit mit ``yield``
+    kann der Teil nach dem ``yield`` in einem anderen Thread laufen als der
+    davor. Ein dort freigegebener ``threading.Lock`` bleibt hängen, und der
+    Dienst antwortet irgendwann gar nicht mehr.
+
+    SQLite im WAL-Modus verträgt mehrere Verbindungen problemlos; das
+    Schema steht schon, deshalb ``init=False``.
     """
-    with request.app.state.db_lock:
-        yield request.app.state.conn
+    conn = db.connect(request.app.state.settings.db, init=False)
+    try:
+        yield conn
+    finally:
+        conn.close()

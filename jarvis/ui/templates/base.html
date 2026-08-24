@@ -21,8 +21,10 @@
   </main>
 
   <footer class="fuss">
-    <span>v{{ version | default("") }}</span>
+    {% if version %}<span>v{{ version }}</span>{% endif %}
+    {% block fusszeile %}
     <form method="post" action="/logout"><button class="link">abmelden</button></form>
+    {% endblock %}
   </footer>
 
   <script>

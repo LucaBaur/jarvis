@@ -11,8 +11,8 @@ import asyncio
 import contextlib
 import logging
 import sqlite3
-import threading
 from collections.abc import AsyncIterator
+from datetime import datetime
 from pathlib import Path
 from typing import Annotated
 
@@ -42,11 +42,25 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or Settings()
     templates = Jinja2Templates(directory=UI_DIR / "templates")
 
+    def lokal(wert: datetime | None, muster: str = "%d.%m.%Y %H:%M") -> str:
+        """Zeitstempel in Ortszeit ausgeben.
+
+        In der Datenbank steht alles in UTC, weil der Homeserver in UTC
+        laeuft. Angezeigt wird trotzdem, was die Uhr an der Wand sagt.
+        """
+        if wert is None:
+            return ""
+        return wert.astimezone(settings.zone).strftime(muster)
+
+    templates.env.filters["lokal"] = lokal
+
     @contextlib.asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.settings = settings
-        app.state.conn = db.connect(settings.db, check_same_thread=False)
-        app.state.db_lock = threading.RLock()
+        # Einmalig das Schema anlegen. Danach oeffnet jede Anfrage ihre
+        # eigene Verbindung (siehe deps.get_db).
+        with contextlib.closing(db.connect(settings.db)) as conn:
+            db.init_schema(conn)
 
         if settings.token_is_default:
             log.warning(
@@ -62,7 +76,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             aufraeumer.cancel()
             with contextlib.suppress(asyncio.CancelledError):
                 await aufraeumer
-            app.state.conn.close()
 
     app = FastAPI(title="Jarvis", version=__version__, lifespan=lifespan)
     app.include_router(api.router)
@@ -82,8 +95,8 @@ async def _reap_loop(app: FastAPI) -> None:
     while True:
         await asyncio.sleep(REAP_INTERVAL_SECONDS)
         try:
-            with app.state.db_lock:
-                zurueck = queue.reap_expired_leases(app.state.conn)
+            with contextlib.closing(db.connect(app.state.settings.db, init=False)) as conn:
+                zurueck = queue.reap_expired_leases(conn)
             if zurueck:
                 log.warning("Lease abgelaufen, zurück in die Queue: %s", ", ".join(zurueck))
         except Exception:  # der Aufräumer darf nie sterben
@@ -96,7 +109,9 @@ def _add_ui_routes(app: FastAPI, templates: Jinja2Templates) -> None:
 
     @app.get("/login", response_class=HTMLResponse)
     def login_form(request: Request) -> HTMLResponse:
-        return templates.TemplateResponse(request, "login.html", {"fehler": None})
+        return templates.TemplateResponse(
+            request, "login.html", {"fehler": None, "version": __version__}
+        )
 
     @app.post("/login", response_model=None)
     def login(
@@ -106,7 +121,7 @@ def _add_ui_routes(app: FastAPI, templates: Jinja2Templates) -> None:
             return templates.TemplateResponse(
                 request,
                 "login.html",
-                {"fehler": "Token stimmt nicht."},
+                {"fehler": "Token stimmt nicht.", "version": __version__},
                 status_code=status.HTTP_401_UNAUTHORIZED,
             )
         antwort = RedirectResponse("/", status_code=status.HTTP_303_SEE_OTHER)

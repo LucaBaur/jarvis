@@ -7,7 +7,7 @@
       <td class="wachsend">
         <a href="/jobs/{{ job.id }}">{{ job.payload.get("prompt", "(ohne Text)") | truncate(80) }}</a>
         <div class="klein">
-          {{ job.created_at.strftime("%d.%m. %H:%M") }}
+          {{ job.created_at | lokal("%d.%m. %H:%M") }}
           {%- if job.assigned_worker %} · {{ job.assigned_worker }}{% endif %}
           {%- if job.window.value != "any" %} · {{ job.window.value }}{% endif %}
         </div>

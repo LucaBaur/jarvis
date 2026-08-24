@@ -4,7 +4,7 @@
 </h1>
 
 <dl class="daten">
-  <dt>Angelegt</dt><dd>{{ job.created_at.strftime("%d.%m.%Y %H:%M") }}</dd>
+  <dt>Angelegt</dt><dd>{{ job.created_at | lokal }}</dd>
   {% if job.assigned_worker %}<dt>Worker</dt><dd>{{ job.assigned_worker }}</dd>{% endif %}
   {% if job.model %}<dt>Modell</dt><dd>{{ job.model }}</dd>{% endif %}
   {% if job.window.value != "any" %}<dt>Fenster</dt><dd>{{ job.window.value }}</dd>{% endif %}
@@ -29,7 +29,7 @@
 <ol class="log">
   {% for zeile in zeilen %}
   <li class="{{ zeile.level.value }}">
-    <span class="klein">{{ zeile.ts.strftime("%H:%M:%S") }}</span>
+    <span class="klein">{{ zeile.ts | lokal("%H:%M:%S") }}</span>
     {{ zeile.message }}
   </li>
   {% endfor %}

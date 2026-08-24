@@ -106,34 +106,49 @@ def load_json(value: str | None, default: Any = None) -> Any:
     return json.loads(value)
 
 
-def connect(path: Path | str, *, check_same_thread: bool = True) -> sqlite3.Connection:
-    """Öffnet die Datenbank und legt das Schema an, falls es fehlt.
+def connect(path: Path | str, *, init: bool = True) -> sqlite3.Connection:
+    """Öffnet eine Verbindung. Mit ``init`` wird auch das Schema angelegt.
 
-    ``check_same_thread=False`` braucht der Webdienst, weil FastAPI
-    synchrone Endpunkte in einem Threadpool ausführt. Die Aufrufe werden
-    dort über eine Sperre serialisiert (siehe ``main.get_db``).
+    Der Webdienst öffnet **pro Anfrage** eine eigene Verbindung und schließt
+    sie wieder. Das ist Absicht: Eine geteilte Verbindung müsste gegen
+    gleichzeitige Zugriffe gesperrt werden, und eine Sperre über eine
+    FastAPI-Abhängigkeit mit ``yield`` ist gefährlich — der Teil nach dem
+    ``yield`` kann in einem anderen Threadpool-Thread laufen als der davor,
+    und ein dort freigegebener ``threading.Lock`` bleibt hängen. SQLite im
+    WAL-Modus verträgt mehrere Verbindungen von Haus aus; ``busy_timeout``
+    fängt gleichzeitige Schreiber ab.
     """
     path = Path(path)
     if str(path) != ":memory:":
         path.parent.mkdir(parents=True, exist_ok=True)
 
+    # check_same_thread=False, weil FastAPI eine Abhaengigkeit mit ``yield``
+    # vor und nach dem yield in verschiedenen Threadpool-Threads ausfuehren
+    # darf. Die Verbindung gehoert trotzdem immer nur einer Anfrage, und
+    # sqlite3.threadsafety ist 3 (serialisiert).
     conn = sqlite3.connect(
-        path, isolation_level=None, timeout=30.0, check_same_thread=check_same_thread
+        path, isolation_level=None, timeout=30.0, check_same_thread=False
     )
     conn.row_factory = sqlite3.Row
-    # WAL: Lesen blockiert Schreiben nicht. Bei einer Datei im Speicher gibt es
+    # WAL: Leser blockieren Schreiber nicht. Eine Datenbank im Speicher kennt
     # kein WAL, deshalb der Zweig.
     if str(path) != ":memory:":
         conn.execute("PRAGMA journal_mode = WAL")
     conn.execute("PRAGMA foreign_keys = ON")
     conn.execute("PRAGMA busy_timeout = 30000")
+    if init:
+        init_schema(conn)
+    return conn
+
+
+def init_schema(conn: sqlite3.Connection) -> None:
+    """Legt Tabellen und Indizes an. Beim Start einmal, danach nie wieder."""
     conn.executescript(_SCHEMA)
     conn.execute(
         "INSERT INTO meta (key, value) VALUES ('schema_version', ?) "
         "ON CONFLICT (key) DO UPDATE SET value = excluded.value",
         (str(SCHEMA_VERSION),),
     )
-    return conn
 
 
 @contextmanager

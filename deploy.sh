@@ -75,4 +75,10 @@ else
 fi
 REMOTE
 
-echo "== Fertig: http://192.168.8.125:8400 =="
+echo
+echo "== Fertig =="
+echo "   http://192.168.8.125:8400                    im Heimnetz"
+echo "   https://homeserver.tail112520.ts.net:10000   ueber Tailscale, noetig fuers Mikrofon"
+echo
+echo "   Token des Servers (nicht das aus der lokalen .env):"
+ssh "$ZIEL_HOST" "grep '^JARVIS_TOKEN=' ~/$ZIEL_PFAD/.env | cut -d= -f2 | sed 's/^/   /'"

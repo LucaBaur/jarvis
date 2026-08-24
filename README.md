@@ -115,6 +115,30 @@ Jeder Job hat eine Priorität, ein erlaubtes Zeitfenster (`any`, `day`,
 `night`), geforderte Tags, einen Mindest-VRAM-Bedarf und optional ein Modell.
 Ein Worker bekommt nur Jobs, die er auch erfüllen kann.
 
+## Es gibt zwei Token
+
+Eine Stolperfalle, die einen garantiert einmal erwischt: Jede Installation hat
+ihr **eigenes** `JARVIS_TOKEN`.
+
+| Wo | Datei | Wofür |
+|---|---|---|
+| Homeserver | `~/jarvis/.env` | der Dienst im Dauerbetrieb — dieses Token braucht das Handy |
+| Dieser PC | `Jarvis/.env` | nur zum Entwickeln, wenn der Orchestrator lokal läuft |
+
+`deploy.sh` überträgt die `.env` **nie**. Beim ersten Deploy legt es auf dem
+Server eine eigene an und würfelt dort ein frisches Token. Das ist Absicht: So
+liegt das Entwicklungs-Geheimnis nie auf dem Server, und das Server-Geheimnis
+nie im Repo.
+
+Das Token des Servers holt man sich so:
+
+```bash
+ssh luca@192.168.8.125 "grep '^JARVIS_TOKEN=' ~/jarvis/.env"
+```
+
+Dasselbe Token gehört in `worker/worker.yaml` auf dem PC — der Worker meldet
+sich ja beim Server an, nicht bei der lokalen Installation.
+
 ## Sprachnachrichten
 
 Auf dem Dashboard gibt es einen Knopf „Sprechen". Aufnehmen, stoppen, fertig —
@@ -221,6 +245,10 @@ Tailscale verwenden.
 
 **„Die Spracherkennung hat nichts verstanden".** Zu leise oder zu kurz. Das
 Modell `base` braucht deutlich gesprochene, zusammenhängende Sätze.
+
+**Das Token wird abgelehnt.** Fast immer das falsche: Der Dienst auf dem
+Homeserver hat ein anderes als die lokale Installation auf dem PC. Siehe „Es
+gibt zwei Token" weiter oben.
 
 **Die Oberfläche fragt immer wieder nach dem Token.** Das Cookie ist
 `httponly` und an den Host gebunden. Wer über `192.168.8.125:8400` anmeldet und

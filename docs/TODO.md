@@ -12,7 +12,7 @@ Gerät in deiner Hand oder eine Entscheidung.
       wartet jeder Auftrag vom Handy, bis du am PC sitzt. Genau das ist heute
       passiert. Anleitung liegt fertig in `deploy/jarvis-worker.xml.txt`, eine
       Aufgabe in der Windows-Aufgabenplanung, fünf Minuten.
-- [ ] **Als App installieren.** Am Handy `https://homeserver.tail112520.ts.net:10000`
+- [ ] **Als App installieren.** Am Handy `https://homeserver.tailnet.ts.net:10000`
       öffnen und installieren. Am PC vorher Tailscale einrichten oder den
       SSH-Tunnel nutzen, siehe README.
 - [ ] **Sprachaufnahme mit echter Stimme ausprobieren.** Bisher getestet nur mit
@@ -64,7 +64,7 @@ und ein laufender Job auf einem HA-Dashboard sichtbar ist.
 - [ ] Coding-Job-Typ: Repo-Pfad plus Aufgabe, Ergebnis ist ein Branch oder ein
       Patch. **Nie direkt auf `main`.** Die meisten deiner Projekte haben kein
       Git, für die wird in ein Arbeitsverzeichnis kopiert und ein Diff erzeugt
-- [ ] Projekt-Registry über alle Unterordner von `C:\Users\lb307\Desktop\Coding`
+- [ ] Projekt-Registry über alle Unterordner von `C:\Users\you\code`
 - [ ] `qwen2.5-coder:7b` messen statt behaupten. Bei 6 GB VRAM ist nicht die
       Geschwindigkeit das Problem, sondern das Kontextfenster
 

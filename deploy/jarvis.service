@@ -3,11 +3,11 @@
 #   systemctl --user daemon-reload
 #   systemctl --user enable --now jarvis
 # Linger muss an sein, damit der Dienst ohne Anmeldung laeuft:
-#   sudo loginctl enable-linger luca
+#   sudo loginctl enable-linger you
 
 [Unit]
 Description=Jarvis Orchestrator (Job-Queue und Weboberflaeche)
-Documentation=file:///home/luca/jarvis/README.md
+Documentation=file:///home/you/jarvis/README.md
 After=network-online.target
 
 [Service]

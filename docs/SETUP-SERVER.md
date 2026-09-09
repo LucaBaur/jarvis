@@ -9,16 +9,16 @@ Queue und liefert die Oberfläche aus. Rechnen tun die Worker.
 ## Voraussetzungen prüfen
 
 ```bash
-ssh luca@192.168.8.125
+ssh you@homeserver
 python3 --version          # 3.11 oder neuer, aktuell 3.14.4
 python3 -c "import venv"   # muss ohne Fehler durchlaufen
-loginctl show-user luca --property=Linger   # muss Linger=yes sagen
+loginctl show-user you --property=Linger   # muss Linger=yes sagen
 ```
 
 Steht dort `Linger=no`, würden User-Dienste beim Abmelden beendet:
 
 ```bash
-sudo loginctl enable-linger luca
+sudo loginctl enable-linger you
 ```
 
 Port 8400 muss frei sein. Belegt sind 22, 8080, 8099, 8123 (Home Assistant),
@@ -46,7 +46,7 @@ es kommt gleich in die `worker.yaml`.** Später steht es in `~/jarvis/.env`.
 ## Dienst einrichten
 
 ```bash
-ssh luca@192.168.8.125
+ssh you@homeserver
 mkdir -p ~/logs ~/.config/systemd/user
 cp ~/jarvis/deploy/jarvis.service ~/.config/systemd/user/
 systemctl --user daemon-reload
@@ -147,8 +147,8 @@ Tailscale läuft auf dem Server bereits. Es gibt zwei Wege hinein, und die Wahl
 ist wichtiger als sie aussieht:
 
 ```
-http://192.168.8.125:8400                          im Heimnetz
-https://homeserver.tail112520.ts.net:10000         über Tailscale, mit HTTPS
+http://homeserver:8400                          im Heimnetz
+https://homeserver.tailnet.ts.net:10000         über Tailscale, mit HTTPS
 ```
 
 **Für das Handy den HTTPS-Weg nehmen.** Browser geben das Mikrofon nur auf

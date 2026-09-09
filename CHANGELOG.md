@@ -37,9 +37,9 @@ baut deshalb selbst eine WAV-Datei, die Whisper direkt versteht. Die
 Abtastrate ist dabei egal, der Container rechnet um.
 
 **Jarvis ist jetzt über HTTPS erreichbar**, unter
-`https://homeserver.tail112520.ts.net:10000`, nur innerhalb des Tailnets. Das
+`https://homeserver.tailnet.ts.net:10000`, nur innerhalb des Tailnets. Das
 ist keine Bequemlichkeit: Browser geben das Mikrofon ausschließlich auf HTTPS
-oder localhost frei, über `http://192.168.8.125:8400` bliebe der Aufnahmeknopf
+oder localhost frei, über `http://homeserver:8400` bliebe der Aufnahmeknopf
 wirkungslos.
 
 Ist kein Whisper erreichbar oder steht `JARVIS_STT_ENABLED=false`, verschwindet

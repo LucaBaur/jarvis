@@ -35,7 +35,7 @@ class TestKonfiguration:
         pfad = tmp_path / "worker.yaml"
         pfad.write_text(
             "name: gpu-pc\n"
-            "orchestrator: http://192.168.8.125:8400\n"
+            "orchestrator: http://homeserver:8400\n"
             "token: geheim\n"
             "tags: [gpu, coding]\n"
             "models: [llama3.1:8b]\n"
@@ -45,7 +45,7 @@ class TestKonfiguration:
         )
         config = WorkerConfig.from_yaml(pfad)
         assert config.name == "gpu-pc"
-        assert config.orchestrator == "http://192.168.8.125:8400"
+        assert config.orchestrator == "http://homeserver:8400"
         assert config.tags == ["gpu", "coding"]
 
     def test_fehlende_pflichtfelder_fallen_frueh_auf(self, tmp_path):

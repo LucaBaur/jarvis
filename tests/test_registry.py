@@ -19,7 +19,7 @@ GPU_PC = WorkerRegistration(
     tags=["gpu", "coding"],
     models=["llama3.1:8b", "phi3:mini"],
     vram_mb=6144,
-    address="192.168.8.124",
+    address="10.0.0.42",
     wake_strategy=WakeStrategy.ALWAYS_ON,
 )
 

@@ -39,7 +39,7 @@ neu öffnen).
 ## Worker einrichten
 
 ```powershell
-cd C:\Users\lb307\Desktop\Coding\Jarvis
+cd C:\Users\you\code\Jarvis
 py -3.11 -m venv .venv
 .venv\Scripts\python.exe -m pip install -e .
 copy worker\worker.example.yaml worker\worker.yaml
@@ -50,7 +50,7 @@ In `worker\worker.yaml` gehören:
 `token` — dasselbe wie `JARVIS_TOKEN` in der `.env` des Orchestrators, zu
 finden in `~/jarvis/.env` auf dem Server.
 
-`orchestrator` — `http://192.168.8.125:8400`.
+`orchestrator` — `http://homeserver:8400`.
 
 `vram_mb` — `6144` für die 1660 SUPER. Danach richtet sich, welche Jobs dieser
 Worker überhaupt annimmt.

@@ -8,7 +8,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-ZIEL_HOST="luca@192.168.8.125"
+ZIEL_HOST="you@homeserver"
 ZIEL_PFAD="jarvis"
 DIENST="jarvis.service"
 PY=".venv/Scripts/python.exe"          # Windows-venv fuer die Tests
@@ -77,8 +77,8 @@ REMOTE
 
 echo
 echo "== Fertig =="
-echo "   http://192.168.8.125:8400                    im Heimnetz"
-echo "   https://homeserver.tail112520.ts.net:10000   ueber Tailscale, noetig fuers Mikrofon"
+echo "   http://homeserver:8400                    im Heimnetz"
+echo "   https://homeserver.tailnet.ts.net:10000   ueber Tailscale, noetig fuers Mikrofon"
 echo
 echo "   Token des Servers (nicht das aus der lokalen .env):"
 ssh "$ZIEL_HOST" "grep '^JARVIS_TOKEN=' ~/$ZIEL_PFAD/.env | cut -d= -f2 | sed 's/^/   /'"

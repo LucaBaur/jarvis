@@ -1,5 +1,12 @@
 # Jarvis
 
+*Self-hosted job queue for local LLM work. A 24/7 orchestrator (FastAPI + SQLite)
+takes jobs via web UI or REST and leases them to pull-based workers that may be
+offline at submit time. Leases with heartbeats, a job state machine, and
+hardware-aware scheduling (VRAM, tags, time window). 162 tests. No paid APIs.*
+
+---
+
 Selbst gehostetes LLM-Harness. Aufträge gehen per Weboberfläche oder REST-API
 rein, warten in einer Queue und werden von dem Rechner abgearbeitet, der gerade
 läuft und die passende Hardware hat. Alles lokal, keine bezahlten APIs, keine
@@ -26,6 +33,14 @@ die Phasen in [docs/ROADMAP.md](docs/ROADMAP.md), und was konkret ansteht in
 
 **Stand:** Phase 2. Text- und Sprachaufträge laufen durch. Home Assistant und
 Nacht-Jobs sind vorbereitet, aber noch nicht gebaut.
+
+## Screenshots
+
+<!-- docs/screenshot-*.png — Dashboard mit wartendem Auftrag, Job-Detail -->
+
+| Dashboard | Job-Detail |
+|---|---|
+| ![Dashboard](docs/screenshot-dashboard.png) | ![Job-Detail](docs/screenshot-job.png) |
 
 ## Schnellstart auf einem Rechner
 
@@ -122,12 +137,12 @@ Ein Worker bekommt nur Jobs, die er auch erfüllen kann.
 Danach liegt Jarvis mit eigenem Symbol auf dem Startbildschirm und öffnet sich
 in einem eigenen Fenster ohne Adresszeile.
 
-**Bedingung: HTTPS oder localhost.** Über `http://192.168.8.125:8400` bietet
+**Bedingung: HTTPS oder localhost.** Über `http://homeserver:8400` bietet
 kein Browser das Installieren an, und das Mikrofon bleibt ebenfalls gesperrt.
 
 ### Handy
 
-`https://homeserver.tail112520.ts.net:10000` öffnen, anmelden.
+`https://homeserver.tailnet.ts.net:10000` öffnen, anmelden.
 
 Auf Android fragt Chrome von selbst, sonst über das Dreipunktmenü unter
 „App installieren". Auf dem iPhone geht es nur in Safari, über den
@@ -139,13 +154,13 @@ Der PC ist nicht im Tailnet, deshalb ist die HTTPS-Adresse hier nicht
 erreichbar. Zwei Wege:
 
 **Tailscale installieren** (der dauerhafte Weg). Nach der Anmeldung mit
-demselben Konto ist `https://homeserver.tail112520.ts.net:10000` auch von hier
+demselben Konto ist `https://homeserver.tailnet.ts.net:10000` auch von hier
 aus erreichbar, samt Mikrofon und Installation.
 
 **Oder einen SSH-Tunnel**, wenn es nur schnell gehen soll:
 
 ```powershell
-ssh -N -L 8400:127.0.0.1:8400 luca@192.168.8.125
+ssh -N -L 8400:127.0.0.1:8400 you@homeserver
 ```
 
 Solange das Fenster offen bleibt, ist `http://localhost:8400` erreichbar — und
@@ -170,7 +185,7 @@ nie im Repo.
 Das Token des Servers holt man sich so:
 
 ```bash
-ssh luca@192.168.8.125 "grep '^JARVIS_TOKEN=' ~/jarvis/.env"
+ssh you@homeserver "grep '^JARVIS_TOKEN=' ~/jarvis/.env"
 ```
 
 Dasselbe Token gehört in `worker/worker.yaml` auf dem PC — der Worker meldet
@@ -184,7 +199,7 @@ eingereiht.
 
 **Dafür muss die Seite über HTTPS geöffnet sein.** Browser geben das Mikrofon
 nur auf HTTPS oder auf localhost frei. Am Handy also
-`https://homeserver.tail112520.ts.net:10000` verwenden, nicht die
+`https://homeserver.tailnet.ts.net:10000` verwenden, nicht die
 HTTP-Adresse — sonst passiert beim Druck auf den Knopf nichts Sinnvolles.
 
 Transkribiert wird lokal von `wyoming-whisper` auf dem Homeserver. Das Modell
@@ -199,7 +214,7 @@ dekodieren könnte. Der Browser baut deshalb direkt eine WAV-Datei.
 Per API geht es auch:
 
 ```bash
-curl -X POST https://homeserver.tail112520.ts.net:10000/api/jobs/audio \
+curl -X POST https://homeserver.tailnet.ts.net:10000/api/jobs/audio \
   -H "X-Jarvis-Token: $TOKEN" -F "audio=@aufnahme.wav"
 ```
 
@@ -214,15 +229,15 @@ Alles hinter dem Token, entweder im Header `X-Jarvis-Token` oder im Cookie
 TOKEN=$(grep '^JARVIS_TOKEN=' .env | cut -d= -f2)
 
 # Auftrag absetzen
-curl -X POST http://192.168.8.125:8400/api/jobs \
+curl -X POST http://homeserver:8400/api/jobs \
   -H "X-Jarvis-Token: $TOKEN" -H "Content-Type: application/json" \
   -d '{"prompt":"Was steht als Naechstes an?"}'
 
 # Nachsehen
-curl "http://192.168.8.125:8400/api/jobs?status=queued" -H "X-Jarvis-Token: $TOKEN"
-curl "http://192.168.8.125:8400/api/jobs/<id>"          -H "X-Jarvis-Token: $TOKEN"
-curl "http://192.168.8.125:8400/api/jobs/<id>/logs"     -H "X-Jarvis-Token: $TOKEN"
-curl "http://192.168.8.125:8400/api/workers"            -H "X-Jarvis-Token: $TOKEN"
+curl "http://homeserver:8400/api/jobs?status=queued" -H "X-Jarvis-Token: $TOKEN"
+curl "http://homeserver:8400/api/jobs/<id>"          -H "X-Jarvis-Token: $TOKEN"
+curl "http://homeserver:8400/api/jobs/<id>/logs"     -H "X-Jarvis-Token: $TOKEN"
+curl "http://homeserver:8400/api/workers"            -H "X-Jarvis-Token: $TOKEN"
 ```
 
 Die vollständige Beschreibung erzeugt FastAPI selbst: `http://.../docs`.
@@ -291,7 +306,7 @@ Homeserver hat ein anderes als die lokale Installation auf dem PC. Siehe „Es
 gibt zwei Token" weiter oben.
 
 **Die Oberfläche fragt immer wieder nach dem Token.** Das Cookie ist
-`httponly` und an den Host gebunden. Wer über `192.168.8.125:8400` anmeldet und
+`httponly` und an den Host gebunden. Wer über `homeserver:8400` anmeldet und
 später über den Tailscale-Namen kommt, muss sich dort erneut anmelden.
 
 **Der Dienst antwortet nicht.**

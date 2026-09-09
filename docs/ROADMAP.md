@@ -37,7 +37,7 @@ Zwei Dinge waren anders als gedacht. Der Homeserver hat kein ffmpeg, und ohne
 Passwort lässt sich das nicht ändern — deshalb nimmt der Browser über die
 Web-Audio-API selbst WAV auf, statt den MediaRecorder zu benutzen. Und der
 Mikrofonknopf braucht HTTPS, sonst gibt kein Browser das Mikrofon frei; Jarvis
-liegt dafür jetzt unter `https://homeserver.tail112520.ts.net:10000`, nur im
+liegt dafür jetzt unter `https://homeserver.tailnet.ts.net:10000`, nur im
 Tailnet.
 
 Nicht gebaut: Piper für gesprochene Antworten. Ob das im Alltag etwas bringt,
@@ -79,7 +79,7 @@ die Windows-Aufgabenplanung, `wol` sobald der PC per Kabel hängt; der Worker
 legt den Rechner schlafen, wenn die Queue leer ist und niemand angemeldet ist;
 ein Coding-Job-Typ, der einen Repo-Pfad und eine Aufgabe bekommt und als
 Ergebnis einen Branch oder ein Patch-File liefert; eine Projekt-Registry, die
-alle Unterordner von `C:\Users\lb307\Desktop\Coding` auflistet.
+alle Unterordner von `C:\Users\you\code` auflistet.
 
 Harte Regel: **Nie direkt auf `main` committen.** Ergebnis ist immer ein Branch
 oder ein Patch, den ich mir ansehe. Die meisten Projekte dort haben kein Git;

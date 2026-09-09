@@ -5,7 +5,7 @@
 name: gpu-pc
 
 # Wo der Orchestrator laeuft. Im Heimnetz die LAN-Adresse des Homeservers.
-orchestrator: http://192.168.8.125:8400
+orchestrator: http://homeserver:8400
 
 # Dasselbe Token wie JARVIS_TOKEN in der .env des Orchestrators.
 token: bitte-ersetzen
@@ -31,4 +31,4 @@ poll_interval: 5
 wake_strategy: always_on
 
 # Nur zur Anzeige in der Oberflaeche.
-address: 192.168.8.124
+address: 10.0.0.42

@@ -3,7 +3,7 @@ Windows-Aufgabenplanung: Worker beim Anmelden starten
 
 In PowerShell als normaler Benutzer (kein Admin noetig):
 
-  $ordner = "C:\Users\lb307\Desktop\Coding\Jarvis"
+  $ordner = "C:\Users\you\code\Jarvis"
   $aktion  = New-ScheduledTaskAction `
       -Execute "$ordner\.venv\Scripts\pythonw.exe" `
       -Argument "-m worker.agent" `
@@ -25,5 +25,5 @@ Entfernen: Unregister-ScheduledTask -TaskName "Jarvis Worker" -Confirm:$false
 Der Worker schreibt sein Log auf stdout. Mit pythonw geht das ins Leere -
 fuer Fehlersuche stattdessen von Hand starten:
 
-  cd C:\Users\lb307\Desktop\Coding\Jarvis
+  cd C:\Users\you\code\Jarvis
   .venv\Scripts\python.exe -m worker.agent

@@ -36,7 +36,7 @@ Nacht-Jobs sind vorbereitet, aber noch nicht gebaut.
 
 ## Screenshots
 
-<!-- docs/screenshot-*.png — Dashboard mit wartendem Auftrag, Job-Detail -->
+Aufgenommen mit erfundenen Demo-Aufträgen.
 
 | Dashboard | Job-Detail |
 |---|---|
